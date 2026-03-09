@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expression vs. Statement</title>
+    <!-- 引入优雅的 Google 字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #f7f9fc;
+            --text-main: #2c3e50;
+            --text-muted: #596a7b;
+            --accent-color: #3b82f6;
+            --card-bg: #ffffff;
+            --line-color: #cbd5e1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2rem 1rem;
+        }
+
+        /* 顶部标题区 */
+        header {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto 4rem auto;
+            padding: 3rem 2rem;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transform: translateY(20px);
+            opacity: 0;
+            animation: fadeInOut 1s forwards;
+            border-top: 5px solid var(--text-main);
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.6rem;
+            color: var(--text-main);
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            font-weight: 300;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        /* 时间轴容器 */
+        .timeline {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* 垂直中线 */
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 20px; /* 移动端靠左 */
+            width: 3px;
+            background: var(--line-color);
+            border-radius: 3px;
+        }
+
+        .section {
+            position: relative;
+            margin-bottom: 3rem;
+            padding-left: 60px; /* 给线和圆点留出空间 */
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 时间轴上的圆点 */
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 12px;
+            width: 19px;
+            height: 19px;
+            background: var(--accent-color);
+            border: 4px solid var(--bg-color);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-main);
+        }
+
+        /* 卡片网格布局 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 600px) {
+            .grid-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border-left: 4px solid var(--accent-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+            letter-spacing: -0.3px;
+        }
+
+        .card ul {
+            list-style: none;
+        }
+
+        .card li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.8rem;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* 列表项的箭头符号 */
+        .card li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        /* 结论区特殊样式 */
+        .conclusion-card {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            color: white;
+            border-left: none;
+            padding: 2.5rem 2rem;
+            border-radius: 12px;
+        }
+
+        .conclusion-card p {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.15rem;
+            font-style: italic;
+            line-height: 1.8;
+            position: relative;
+        }
+        
+        .conclusion-card p::before {
+            content: '"';
+            font-size: 4rem;
+            position: absolute;
+            top: -25px;
+            left: -15px;
+            opacity: 0.15;
+            font-family: serif;
+            line-height: 1;
+        }
+
+        @keyframes fadeInOut {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 桌面端时间轴居中 */
+        @media (min-width: 900px) {
+            .timeline::before {
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            .section {
+                width: 50%;
+                padding-left: 0;
+                padding-right: 40px;
+                margin-left: 0;
+            }
+            .section:nth-child(even) {
+                margin-left: 50%;
+                padding-left: 40px;
+                padding-right: 0;
+            }
+            .section::before {
+                left: auto;
+                right: -9.5px; /* 右侧圆点 */
+            }
+            .section:nth-child(even)::before {
+                left: -9.5px; /* 左侧圆点 */
+            }
+            /* 居中大板块里的内容 */
+            .section:nth-child(odd) .grid-container,
+            .section:nth-child(even) .grid-container {
+                grid-template-columns: 1fr; 
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Expression vs. Statement</h1>
+        <p class="subtitle">Dewey’s distinction between artistic representation and ordinary representation</p>
+    </header>
+
+    <main class="timeline">
+        
+        <!-- 1. Theory -->
+        <div class="section">
+            <h2 class="section-title">1. Theory</h2>
+            <div class="grid-container">
+                <div class="card">
+                    <h3>Aristotle</h3>
+                    <ul>
+                        <li><strong>Poetry</strong> <span>&rarr;</span> universals</li>
+                        <li><strong>History</strong> <span>&rarr;</span> particulars</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3>Dewey</h3>
+                    <ul>
+                        <li><strong>Statement</strong> <span>&rarr;</span> generalized</li>
+                        <li><strong>Expression</strong> <span>&rarr;</span> individualized</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Example -->
+        <div class="section">
+            <h2 class="section-title">2. Example (Grief)</h2>
+            <div class="grid-container">
+                <div class="card" style="border-left-color: #94a3b8;">
+                    <h3>Statement</h3>
+                    <ul>
+                        <li>general symbol of sadness</li>
+                        <li>type of emotion</li>
+                    </ul>
+                </div>
+                <div class="card" style="border-left-color: #f59e0b;">
+                    <h3>Expression</h3>
+                    <ul>
+                        <li>grief of a particular individual</li>
+                        <li>connected with a particular event</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Conclusion -->
+        <div class="section" style="width: 100%; margin-left: 0; padding-left: 20px; padding-right: 20px;">
+            <style>
+                /* 重置结论在居中模式下的样式 */
+                @media (min-width: 900px) {
+                    .timeline .section:last-child {
+                        width: 80%;
+                        margin: 0 auto;
+                        padding: 0;
+                        text-align: center;
+                    }
+                    .timeline .section:last-child::before {
+                        left: 50%;
+                        transform: translateX(-50%);
+                        top: -30px;
+                    }
+                    .timeline .section:last-child .section-title {
+                        margin-top: 1rem;
+                    }
+                }
+            </style>
+            <h2 class="section-title">3. Conclusion</h2>
+            <div class="grid-container" style="grid-template-columns: 1fr;">
+                <div class="card conclusion-card">
+                    <p>
+                        A work of art must present a subject matter in such a way that the emotional and attitudinal significance of it can be explored through interaction with the work itself.
+                    </p>
+                </div>
+                <div class="card conclusion-card">
+                    <p>
+                        Success in artistic representation is indissolubly wedded to the explorative working of the medium and the achievement of expressiveness.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 滚动动画脚本 -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const sections = document.querySelectorAll(".section");
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("visible");
+                    }
+                });
+            }, {
+                threshold: 0.15 // 当卡片露出 15% 时触发动画
+            });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>
